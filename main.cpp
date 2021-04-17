@@ -31,11 +31,12 @@ int bucket(string s){
     assert(!s.empty());
     int i=0;
     for (char c : s) {
-        i+=c;
+        i=(i*227)+c;
     }
+    i=abs(i);
     int b=i%num_buckets;
     //int i=s[0]-'A';
-    assert(i>=0 && i<num_buckets);
+    assert(b>=0 && b<num_buckets);
     return b;
 }
 class Library{
