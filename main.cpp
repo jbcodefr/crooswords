@@ -6,15 +6,61 @@
 #include <fstream>
 using namespace std;
 
+
+
+//method convert
+string ToUpper(string s){
+    string s2;
+
+    for (char c:s) {
+        s2.push_back(toupper(c));
+    }
+    return s2;
+}
+struct Word{
+    Word(string s){
+        word=s;
+    }
+    string word;
+};
+
+typedef vector<Word> Words;
+
+const int num_buckets=1001;
+int bucket(string s){
+    assert(!s.empty());
+    int i=0;
+    for (char c : s) {
+        i+=c;
+    }
+    int b=i%num_buckets;
+    //int i=s[0]-'A';
+    assert(i>=0 && i<num_buckets);
+    return b;
+}
 class Library{
 
     public:
+    Library(){
+        shelves.resize(num_buckets);
+    }
+
+    bool IsWord(string s) const{
+        cout <<"bucket is "<< bucket(s)<<" for word: "<<s<<"\n";
+        for(Word w: shelves[bucket(s)]){
+            if(s==w.word){
+                return true;
+            }
+        }
+        return false;
+    }
+
     void ComputeStats(){
         assert(counts.empty());
         counts.resize(18);
 
-        for (string s:words){
-            int len=s.length();
+        for (Word w:words){
+            int len=w.word.length();
             if(len<18){
             counts[len]++;
             }
@@ -32,7 +78,7 @@ class Library{
     };
         string GetWord(int i) const{
             assert(i>=0 && i< words.size());
-            return words[i];
+            return words[i].word;
         }
         void ReadFromFile(string filename){
             ifstream f;
@@ -42,25 +88,35 @@ class Library{
                 getline(f,line);
                 //cout <<line<<"("<<line.length()<<")\n";
                 if (!line.empty() && line[0] !='#'){
+                    line=ToUpper(line);//conversione TOUpper
                     int len=line.length();
                     if (line[len-1]=='\r'){
                         line =line.substr(0,len-1);
                     }
-                    words.push_back(line);
+                    words.push_back(Word(line));
+                    shelves[bucket(line)].push_back(Word(line));
                 }
             }
 
-            cout <<words[0]<<"\n";
-            cout <<words[0].length()<<"\n";
-            for (char c:words[0]) {
+            cout <<words[0].word<<"\n";
+            cout <<words[0].word.length()<<"\n";
+            for (char c:words[0].word) {
                 int x=c;
                 cout <<c<<" "<<x<<"\n";
             }
             cout<<"Read "<< words.size() <<" words from file"<<filename<<"\n";
         }
+
+        void DebugBuckets() const{
+            for(int i=0;i<shelves.size();i++){
+                cout <<"[ "<<i<<" ] "<< shelves[i].size()<<"\n";
+
+        }
+        }
     private:
-        vector<string> words;
+        Words words;
         vector<int> counts;
+        vector<Words> shelves;
 
 };
 
@@ -117,8 +173,18 @@ struct Grid{
 int main() {
     Library lib;
     lib.ReadFromFile("dictionary.txt");
-    lib.ComputeStats();
-    lib.PrintStats();
+   // lib.ComputeStats();
+   // lib.PrintStats();
+
+    cout <<lib.IsWord("DOG")<<"\n";
+    cout <<lib.IsWord("ABDEEL")<<"\n";
+    cout <<lib.IsWord("AAAA")<<"\n";
+    cout <<lib.IsWord("DdfdfdfOG")<<"\n";
+    lib.DebugBuckets();
+
+   // cout << ToUpper("dog")<<"\n";
+   // cout << lib.GetWord(2323)<<"\n";
+
 
     // cout <<  lib.GetWord(334)<<"\n";
   /*  Grid grid("MY GRID");
