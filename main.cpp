@@ -21,16 +21,34 @@ string ToUpper(string s){
 struct Word{
     Word(string s): word(s){}
     Word(){}
+    int len() const {return  word.length();}
     string word;
 };
 
-typedef vector<Word> Words;
+typedef vector<Word*> Words;
 typedef unordered_map<string,Word> WordMap;
 
 class Library{
 
     public:
     Library(){}
+
+    ~Library(){
+        for (Word* w:words_){
+            delete w;
+        }
+    }
+
+    void FindWord(const string& s) const{
+        auto it=  word_map_.find(s);
+        if (it!=word_map_.end()){
+         /*  for( Word* w : it){
+               cout << " " << w->word;
+           }*/
+         //bUGS MODULE 12
+           cout << "rwetre \n";
+        }
+    }
 
     bool IsWord(string s) const{
 
@@ -47,8 +65,8 @@ class Library{
         assert(counts_.empty());
         counts_.resize(18);
 
-        for (Word w:words_){
-            int len=w.word.length();
+        for (const Word* w:words_){
+            int len=w->word.length();
             if(len<18){
             counts_[len]++;
             }
@@ -66,12 +84,28 @@ class Library{
     };
         string GetWord(int i) const{
             assert(i>=0 && i< words_.size());
-            return words_[i].word;
+            return words_[i]->word;
+        }
+        void CreatePatternHash( Word* w){
+            int len = w->len();
+            int num_patterns=1<<len;
+          //  cout<<"pattern hash on "<< w->word<<"\n";
+            for (int i = 0; i < num_patterns; ++i) {
+             //   cout <<" "<< i <<"\n";
+                string temp=w->word;
+                for (int j = 0; j < len; ++j) {
+                    if((i>>j)&1){
+                        temp[j]='-';
+                    }
+                }
+             //   cout <<" "<< temp<<"\n";
+           //   word_map_[temp].push_back(w);
+            }
         }
         void ReadFromFile(string filename){
             ifstream f;
             f.open(filename);
-            while (!f.eof()){
+            while (f.is_open() && !f.eof()){
                 string line;
                 getline(f,line);
                 //cout <<line<<"("<<line.length()<<")\n";
@@ -81,9 +115,10 @@ class Library{
                     if (line[len-1]=='\r'){
                         line =line.substr(0,len-1);
                     }
-
-                    words_.push_back(Word(line));
-                    word_map_[line]=Word(line);
+                    Word* w=new Word(line);
+                    words_.push_back(new Word(line));
+                    CreatePatternHash(w);
+                    //word_map_[line]=Word(line);
                     //debuging
                     //cout <<"Debug: new bucket_count="<< word_map_.bucket_count()
                   //  <<" : load_factor="<< word_map_.load_factor() <<"\n";
@@ -91,9 +126,9 @@ class Library{
                 }
             }
 
-            cout <<words_[0].word<<"\n";
-            cout <<words_[0].word.length()<<"\n";
-            for (char c:words_[0].word) {
+            cout <<words_[0]->word<<"\n";
+            cout <<words_[0]->word.length()<<"\n";
+            for (char c:words_[0]->word) {
                 int x=c;
                 cout <<c<<" "<<x<<"\n";
             }
@@ -105,8 +140,8 @@ class Library{
                 cout << "[ " << i << " ] " << word_map_.bucket_size(i) << "\n";}
         }
     private:
-        Words words_;
-        vector<int> counts_;
+        Words words_; // master vector of words
+        vector<int> counts_; // return all vector of <dad
        WordMap word_map_;
 
 };
@@ -133,15 +168,16 @@ struct Grid{
 
         // lecture de la grid a partir d'un fichier
     void LoadFromFile(string filename)  {
-     string line;
-     ifstream MyReadFile(filename);
-     while (getline (MyReadFile, line)) {
-        // cout << line<<"("<<line.length()<<")\n";
-         if (!line.empty()&& line[0]!='#'){
-             lines.push_back(line);
-         }
-     }
-     MyReadFile.close();
+        ifstream f;
+        f.open(filename);
+            while (f.is_open()&& !f.eof()){
+                string line;
+                getline(f,line);
+                cout<<line<<"("<<line.length()<<")\n";
+                if (!line.empty() && line[0] !='#'){
+                    lines.push_back(line);
+                }
+            }
     }
 
     //test if row=cols
@@ -165,23 +201,14 @@ int main() {
 
     Library lib;
     lib.ReadFromFile("dictionary.txt");
-    // lib.ComputeStats();
-    // lib.PrintStats();
 
-    cout <<lib.IsWord("DOG")<<"\n";
-    cout <<lib.IsWord("ABDEEL")<<"\n";
-    cout <<lib.IsWord("AAAA")<<"\n";
-    cout <<lib.IsWord("DdfdfdfOG")<<"\n";
-    lib.DebugBuckets();
+    lib.FindWord("D--");
+   // lib.DebugBuckets();
 
-    // cout << ToUpper("dog")<<"\n";
-    // cout << lib.GetWord(2323)<<"\n";
-
-
-    // cout <<  lib.GetWord(334)<<"\n";
-    /*  Grid grid("MY GRID");
+    /*
+      Grid grid("MY GRID");
       grid.LoadFromFile("file.txt");
       grid.Check();
       grid.Print();
-  */
+    */
 }
